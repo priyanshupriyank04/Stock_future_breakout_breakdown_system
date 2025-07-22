@@ -22,8 +22,8 @@ logging.info(" Required libraries imported successfully.")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 #  API Credentials
-API_KEY = "8re7mjcm2btaozwf"  #  Replace with your actual API key
-API_SECRET = "fw8gm7wfeclcic9rlkp0tbzx4h2ss2n1"  # Replace with your actual API secret
+API_KEY = "apikey"  #  Replace with your actual API key
+API_SECRET = "secretkey"  # Replace with your actual API secret
 ACCESS_TOKEN_FILE = "access_token.txt"
 
 #  Initialize KiteConnect
