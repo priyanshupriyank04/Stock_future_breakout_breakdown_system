@@ -22,8 +22,8 @@ logging.info(" Required libraries imported successfully.")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 #  API Credentials
-API_KEY = "api_key"  #  Replace with your actual API key
-API_SECRET = "secret_key"  # Replace with your actual API secret
+API_KEY = "8re7mjcm2btaozwf"  #  Replace with your actual API key
+API_SECRET = "fw8gm7wfeclcic9rlkp0tbzx4h2ss2n1"  # Replace with your actual API secret
 ACCESS_TOKEN_FILE = "access_token.txt"
 
 #  Initialize KiteConnect
@@ -994,7 +994,7 @@ def run_relative_strength_strategy():
 
             # Fetch last 3 rows (we'll use the last 2 for latest-candle crossover)
             cur.execute(f"""
-                SELECT date, odd_bull, odd_bear, di_plus, di_minus
+                SELECT date, odd_bull, odd_bear, di_plus, di_minus, adx
                 FROM {table_name}
                 ORDER BY date DESC
                 LIMIT 3;
@@ -1004,7 +1004,7 @@ def run_relative_strength_strategy():
                 # Need at least 2 rows to test a crossover at the latest candle
                 continue
 
-            df = pd.DataFrame(rows, columns=["date", "odd_bull", "odd_bear", "di_plus", "di_minus"])
+            df = pd.DataFrame(rows, columns=["date", "odd_bull", "odd_bear", "di_plus", "di_minus", "adx"])
             df = df.astype(float, errors="ignore")
             df = df.iloc[::-1].reset_index(drop=True)  # Oldest -> Newest; latest is index 2 if we have 3, else 1
 
@@ -1027,11 +1027,15 @@ def run_relative_strength_strategy():
             bull_cboe_cross_latest = crossed_above(df["odd_bull"], df["odd_bear"], prev_idx, curr_idx)
             bull_di_cross_latest   = crossed_above(df["di_plus"], df["di_minus"], prev_idx, curr_idx)
 
-            if bear_cboe_cross_latest and bear_di_cross_latest:
+            # EXTRA: ADX latest must be higher than previous
+            adx_rising_latest = pd.notna(df["adx"].iloc[prev_idx]) and pd.notna(df["adx"].iloc[curr_idx]) \
+                                and (df["adx"].iloc[curr_idx] > df["adx"].iloc[prev_idx])
+
+            if bear_cboe_cross_latest and bear_di_cross_latest and adx_rising_latest:
                 bear_triggers.append(tradingsymbol)
                 logging.info(f"BEARISH TRIGGER (Relative, latest candle): {tradingsymbol}")
 
-            if bull_cboe_cross_latest and bull_di_cross_latest:
+            if bull_cboe_cross_latest and bull_di_cross_latest and adx_rising_latest:
                 bull_triggers.append(tradingsymbol)
                 logging.info(f"BULLISH TRIGGER (Relative, latest candle): {tradingsymbol}")
 
@@ -1058,7 +1062,6 @@ def run_relative_strength_strategy():
 
 # Run the strategy
 run_relative_strength_strategy()
-
 
 
 
